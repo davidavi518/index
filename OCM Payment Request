@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OCM Payment Request Form</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    select, input, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+    button { margin-top: 20px; padding: 10px 15px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>OCM Payment Request Form</h1>
+
+  <label>Check Payable To:</label>
+  <input type="text" id="payee">
+
+  <label>Request Date:</label>
+  <input type="date" id="requestDate">
+
+  <label>Request Amount ($):</label>
+  <input type="number" id="amount">
+
+  <label>Payment Option:</label>
+  <select id="paymentOption">
+    <option value="">Select</option>
+    <option>Check</option>
+    <option>Direct Deposit</option>
+    <option>Reimbursement</option>
+  </select>
+
+  <label>Memo on Check:</label>
+  <input type="text" id="memo">
+
+  <label>Mail To Address:</label>
+  <textarea id="address"></textarea>
+
+  <label>Purpose of Request:</label>
+  <textarea id="purpose"></textarea>
+
+  <label>Department:</label>
+  <select id="department" onchange="updateSubDepartments()">
+    <option value="">Select</option>
+    <option>Personnel</option>
+    <option>Administration</option>
+    <option>Global Mission</option>
+    <option>Local Mission</option>
+  </select>
+
+  <label>Sub-Department:</label>
+  <select id="subDepartment"></select>
+
+  <label>Expense Category:</label>
+  <select id="expenseCategory" onchange="updateSubCategories()">
+    <option value="">Select</option>
+    <option>Salaries and Wages</option>
+    <option>Housing Allowance</option>
+    <option>Payroll Taxes</option>
+    <option>Benefits</option>
+  </select>
+
+  <label>Sub-Category:</label>
+  <select id="subCategory"></select>
+
+  <button onclick="downloadExcel()">Download Excel</button>
+
+  <script>
+    const subDepartments = {
+      'Personnel': ['General'],
+      'Administration': ['General', 'LL11'],
+      'Global Mission': ['General', 'English', 'Mandarin'],
+      'Local Mission': ['General', 'Cantonese', 'Outreach Meetings']
+    };
+
+    const subCategories = {
+      'Salaries and Wages': ['Pastoral Staffs', 'Administration Staffs'],
+      'Housing Allowance': ['Pastoral Staffs', 'Administration Staffs'],
+      'Payroll Taxes': [],
+      'Benefits': ['Health Insurance', 'AD&D Life Insurance', 'Retirement Benefit 403(b)']
+    };
+
+    function updateSubDepartments() {
+      const dept = document.getElementById('department').value;
+      const subDept = document.getElementById('subDepartment');
+      subDept.innerHTML = '';
+      (subDepartments[dept] || []).forEach(sd => {
+        const opt = document.createElement('option');
+        opt.textContent = sd;
+        subDept.appendChild(opt);
+      });
+    }
+
+    function updateSubCategories() {
+      const cat = document.getElementById('expenseCategory').value;
+      const subCat = document.getElementById('subCategory');
+      subCat.innerHTML = '';
+      (subCategories[cat] || []).forEach(sc => {
+        const opt = document.createElement('option');
+        opt.textContent = sc;
+        subCat.appendChild(opt);
+      });
+    }
+
+    function downloadExcel() {
+      const data = [[
+        'Check Payable To', document.getElementById('payee').value,
+        'Request Date', document.getElementById('requestDate').value
+      ], [
+        'Request Amount', document.getElementById('amount').value,
+        'Payment Option', document.getElementById('paymentOption').value
+      ], [
+        'Memo on Check', document.getElementById('memo').value,
+        'Mail To Address', document.getElementById('address').value
+      ], [
+        'Purpose of Request', document.getElementById('purpose').value
+      ], [
+        'Department', document.getElementById('department').value,
+        'Sub-Department', document.getElementById('subDepartment').value
+      ], [
+        'Expense Category', document.getElementById('expenseCategory').value,
+        'Sub-Category', document.getElementById('subCategory').value
+      ]];
+
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Payment Request');
+      XLSX.writeFile(wb, 'OCM_Payment_Request.xlsx');
+    }
+  </script>
+</body>
+</html>
